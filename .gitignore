@@ -1,0 +1,9 @@
+# Only the app files belong in this repo
+*.ipynb
+*.pptx
+*.pkl
+build_presentation.py
+build_presentation2.py
+stats.csv
+.ipynb_checkpoints/
+__pycache__/
