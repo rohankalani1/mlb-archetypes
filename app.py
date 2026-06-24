@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
@@ -151,50 +151,71 @@ with right:
         st.warning("Enter a player name before classifying.")
 
     # Draw map
-    fig, ax = plt.subplots(figsize=(9, 5.8), facecolor='#111827')
-    ax.set_facecolor('#111827')
+    fig = go.Figure()
 
     for arch, color in ARCHETYPE_COLORS.items():
         m = df_model['Archetype'] == arch
-        ax.scatter(df_model[m]['PCA1'], df_model[m]['PCA2'],
-                   color=color, s=65, alpha=0.72, label=arch, edgecolors='none')
-
-    notable = ['Soto, Juan', 'Judge, Aaron', 'Perez, Salvador',
-               'Ohtani, Shohei', 'Arraez, Luis', 'Kwan, Steven', 'Báez, Javier']
-    for _, row in df_model[df_model['player_name'].isin(notable)].iterrows():
-        ax.annotate(
-            row['player_name'].split(',')[0],
-            (row['PCA1'], row['PCA2']),
-            textcoords='offset points', xytext=(6, 4),
-            fontsize=8, color='white', alpha=0.8
-        )
+        subset = df_model[m]
+        fig.add_trace(go.Scatter(
+            x=subset['PCA1'],
+            y=subset['PCA2'],
+            mode='markers',
+            name=arch,
+            marker=dict(color=color, size=8, opacity=0.75),
+            customdata=subset[['player_name', 'BB%', 'Barrel Rate',
+                                'In Zone Swing %', 'Out of Zone Swing %', 'Whiff %']].values,
+            hovertemplate=(
+                '<b>%{customdata[0]}</b><br>'
+                'BB%%: %{customdata[1]:.1f}  |  Barrel: %{customdata[2]:.1f}<br>'
+                'IZ Swing: %{customdata[3]:.1f}  |  OZ Swing: %{customdata[4]:.1f}<br>'
+                'Whiff: %{customdata[5]:.1f}'
+                '<extra></extra>'
+            ),
+        ))
 
     if new_player_pca is not None:
-        star_color = ARCHETYPE_COLORS[new_archetype]
-        ax.scatter(new_player_pca[0, 0], new_player_pca[0, 1],
-                   color='#EF4444', s=280, zorder=6, marker='*', label=player_name)
-        ax.annotate(
-            player_name,
-            (new_player_pca[0, 0], new_player_pca[0, 1]),
-            textcoords='offset points', xytext=(9, 6),
-            fontsize=9, color='#EF4444', fontweight='bold'
-        )
+        fig.add_trace(go.Scatter(
+            x=[new_player_pca[0, 0]],
+            y=[new_player_pca[0, 1]],
+            mode='markers+text',
+            name=player_name,
+            marker=dict(color='#EF4444', size=18, symbol='star'),
+            text=[player_name],
+            textposition='top right',
+            textfont=dict(color='#EF4444', size=11),
+            hovertemplate=(
+                f'<b>{player_name}</b><br>'
+                f'BB%%: {bb:.1f}  |  Barrel: {barrel:.1f}<br>'
+                f'IZ Swing: {iz_swing:.1f}  |  OZ Swing: {oz_swing:.1f}<br>'
+                f'Whiff: {whiff:.1f}'
+                '<extra></extra>'
+            ),
+        ))
 
-    ax.set_xlabel('← Better Plate Discipline    |    More Aggressive →',
-                  color='#9CA3AF', fontsize=10)
-    ax.set_ylabel('← Contact Focus    |    Higher Power →',
-                  color='#9CA3AF', fontsize=10)
-    ax.legend(loc='upper left', framealpha=0.2, labelcolor='white',
-              facecolor='#1F2937', edgecolor='#374151', fontsize=9)
-    for sp in ['top', 'right']:
-        ax.spines[sp].set_visible(False)
-    ax.spines['left'].set_color('#374151')
-    ax.spines['bottom'].set_color('#374151')
-    ax.tick_params(colors='#9CA3AF')
-    plt.tight_layout()
+    fig.update_layout(
+        paper_bgcolor='#111827',
+        plot_bgcolor='#111827',
+        font=dict(color='#9CA3AF'),
+        xaxis=dict(
+            title='← Better Plate Discipline    |    More Aggressive →',
+            gridcolor='#374151', zerolinecolor='#374151',
+            color='#9CA3AF', title_font=dict(size=11),
+        ),
+        yaxis=dict(
+            title='← Contact Focus    |    Higher Power →',
+            gridcolor='#374151', zerolinecolor='#374151',
+            color='#9CA3AF', title_font=dict(size=11),
+        ),
+        legend=dict(
+            bgcolor='#1F2937', bordercolor='#374151', borderwidth=1,
+            font=dict(color='white', size=10),
+        ),
+        hoverlabel=dict(bgcolor='#1F2937', bordercolor='#374151', font=dict(color='white')),
+        height=480,
+        margin=dict(l=10, r=10, t=20, b=10),
+    )
 
-    st.pyplot(fig)
-    plt.close(fig)
+    st.plotly_chart(fig, use_container_width=True)
 
     # Result card
     if new_archetype:
