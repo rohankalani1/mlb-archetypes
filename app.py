@@ -298,30 +298,26 @@ with right:
         bars_html = ''
         for feat, val in stat_inputs.items():
             pct = (df_model[feat] <= val).sum() / len(df_model) * 100
-            bars_html += f'''
-            <div style="display:flex;align-items:center;margin-bottom:5px;gap:8px;">
-              <div style="width:115px;color:#D1D5DB;font-size:12px;white-space:nowrap;">{feat}</div>
-              <div style="flex:1;background:#374151;border-radius:3px;height:7px;overflow:hidden;">
-                <div style="width:{pct:.0f}%;background:{color};height:100%;border-radius:3px;"></div>
-              </div>
-              <div style="width:105px;color:#9CA3AF;font-size:11px;text-align:right;">{val:.1f} · {_ordinal(pct)} pctile</div>
-            </div>'''
+            pct_label = f'< 1st pctile' if round(pct) == 0 else f'{_ordinal(pct)} pctile'
+            bars_html += (
+                f'<div style="display:flex;align-items:center;margin-bottom:5px;gap:8px;">'
+                f'<div style="width:115px;color:#D1D5DB;font-size:12px;white-space:nowrap;">{feat}</div>'
+                f'<div style="flex:1;background:#374151;border-radius:3px;height:7px;overflow:hidden;">'
+                f'<div style="width:{pct:.0f}%;background:{color};height:100%;border-radius:3px;"></div>'
+                f'</div>'
+                f'<div style="width:105px;color:#9CA3AF;font-size:11px;text-align:right;">{val:.1f} · {pct_label}</div>'
+                f'</div>'
+            )
 
-        st.markdown(f"""
-        <div style="background:#1F2937; border-left:4px solid {color};
-                    padding:16px 20px; border-radius:6px; margin-top:8px;">
-            <div style="color:#9CA3AF; font-size:12px; margin-bottom:4px;">CLASSIFICATION RESULT</div>
-            <div style="color:{color}; font-size:22px; font-weight:700;">{new_archetype}</div>
-            <div style="color:#D1D5DB; font-size:13px; margin-top:4px;">{desc}</div>
-            <div style="color:#9CA3AF; font-size:12px; margin-top:10px;">
-                Most similar players: {similar_html}
-            </div>
-            <div style="margin-top:14px; border-top:1px solid #374151; padding-top:12px;">
-              <div style="color:#9CA3AF; font-size:11px; margin-bottom:8px;
-                          text-transform:uppercase; letter-spacing:0.05em;">
-                Stat Percentiles vs. {len(df_model)} qualified players
-              </div>
-              {bars_html}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            f'<div style="background:#1F2937;border-left:4px solid {color};padding:16px 20px;border-radius:6px;margin-top:8px;">'
+            f'<div style="color:#9CA3AF;font-size:12px;margin-bottom:4px;">CLASSIFICATION RESULT</div>'
+            f'<div style="color:{color};font-size:22px;font-weight:700;">{new_archetype}</div>'
+            f'<div style="color:#D1D5DB;font-size:13px;margin-top:4px;">{desc}</div>'
+            f'<div style="color:#9CA3AF;font-size:12px;margin-top:10px;">Most similar players: {similar_html}</div>'
+            f'<div style="margin-top:14px;border-top:1px solid #374151;padding-top:12px;">'
+            f'<div style="color:#9CA3AF;font-size:11px;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Stat Percentiles vs. {len(df_model)} qualified players</div>'
+            f'{bars_html}'
+            f'</div></div>',
+            unsafe_allow_html=True,
+        )
