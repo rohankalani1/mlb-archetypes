@@ -197,6 +197,36 @@ with right:
             ),
         ))
 
+    looked_up = st.session_state.get('player_lookup', '— select a player —')
+    if looked_up and looked_up != '— select a player —':
+        lu = df_model[df_model['player_name'] == looked_up]
+        if not lu.empty:
+            lu = lu.iloc[0]
+            fig.add_trace(go.Scatter(
+                x=[lu['PCA1']],
+                y=[lu['PCA2']],
+                mode='markers+text',
+                name=looked_up,
+                marker=dict(
+                    color=ARCHETYPE_COLORS[lu['Archetype']],
+                    size=15,
+                    line=dict(color='white', width=2),
+                ),
+                text=[lu['player_name'].split(', ')[0]],
+                textposition='top right',
+                textfont=dict(color='white', size=10),
+                customdata=[[lu['player_name'], lu['BB%'], lu['Barrel Rate'],
+                             lu['In Zone Swing %'], lu['Out of Zone Swing %'], lu['Whiff %']]],
+                hovertemplate=(
+                    '<b>%{customdata[0]}</b><br>'
+                    'BB%%: %{customdata[1]:.1f}  |  Barrel: %{customdata[2]:.1f}<br>'
+                    'IZ Swing: %{customdata[3]:.1f}  |  OZ Swing: %{customdata[4]:.1f}<br>'
+                    'Whiff: %{customdata[5]:.1f}'
+                    '<extra></extra>'
+                ),
+                showlegend=False,
+            ))
+
     if new_player_pca is not None:
         fig.add_trace(go.Scatter(
             x=[new_player_pca[0, 0]],
