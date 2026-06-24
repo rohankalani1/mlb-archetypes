@@ -351,7 +351,7 @@ with right:
             polar=dict(
                 bgcolor='#1F2937',
                 radialaxis=dict(visible=True, range=[0, 100], tickfont=dict(color='#6B7280'), gridcolor='#374151', linecolor='#374151'),
-                angularaxis=dict(tickfont=dict(color='#D1D5DB'), gridcolor='#374151', linecolor='#374151'),
+                angularaxis=dict(tickfont=dict(color='#D1D5DB'), gridcolor='#374151', linecolor='#374151', rotation=90, direction='clockwise'),
             ),
             paper_bgcolor='#111827',
             font=dict(color='#9CA3AF'),
