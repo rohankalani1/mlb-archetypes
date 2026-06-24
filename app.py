@@ -340,12 +340,14 @@ with st.container():
             fill='toself', name=f'{new_archetype} avg',
             line=dict(color=color, width=2),
             fillcolor=color, opacity=0.3,
+            hovertemplate='<b>%{theta}</b><br>Archetype avg: %{r:.1f} pctile<extra></extra>',
         ))
         fig_radar.add_trace(go.Scatterpolar(
             r=user_pcts, theta=radar_labels,
             fill='toself', name=player_name or 'Your player',
             line=dict(color='white', width=2),
             fillcolor='rgba(255,255,255,0.08)',
+            hovertemplate='<b>%{theta}</b><br>%{r:.1f} pctile<extra></extra>',
         ))
         fig_radar.update_layout(
             polar=dict(
