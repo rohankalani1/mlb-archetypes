@@ -125,9 +125,7 @@ st.caption("K-Means clustering on 2021–2025 Statcast data  •  106 qualified 
 st.divider()
 
 # ── Layout ────────────────────────────────────────────────────────────────────
-left, right = st.columns([1, 2.2])
-
-with left:
+with st.sidebar:
     st.subheader("Player Input")
 
     lookup_options = ['— select a player —'] + sorted(df_model['player_name'].tolist())
@@ -148,13 +146,15 @@ with left:
     st.divider()
     st.markdown("**Archetype Key**")
     for arch, color in ARCHETYPE_COLORS.items():
+        count = (df_model['Archetype'] == arch).sum()
         st.markdown(
             f'<span style="color:{color}; font-weight:600;">■</span> '
-            f'<span style="font-size:13px;">{arch}</span>',
+            f'<span style="font-size:13px;">{arch}</span> '
+            f'<span style="color:#6B7280; font-size:11px;">({count})</span>',
             unsafe_allow_html=True
         )
 
-with right:
+with st.container():
     st.subheader("Archetype Map — PCA Projection")
 
     new_player_pca  = None
@@ -243,10 +243,10 @@ with right:
             y=[new_player_pca[0, 1]],
             mode='markers+text',
             name=player_name,
-            marker=dict(color='#EF4444', size=18, symbol='star'),
+            marker=dict(color=ARCHETYPE_COLORS[new_archetype], size=18, symbol='star'),
             text=[player_name],
             textposition='top right',
-            textfont=dict(color='#EF4444', size=11),
+            textfont=dict(color=ARCHETYPE_COLORS[new_archetype], size=11),
             hovertemplate=(
                 f'<b>{player_name}</b><br>'
                 f'BB%%: {bb:.1f}  |  Barrel: {barrel:.1f}<br>'
