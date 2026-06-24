@@ -167,9 +167,11 @@ with right:
         new_sc        = pipeline['scaler'].transform(new_player)
         new_player_pca = pca.transform(new_sc)
 
-        cluster_mask   = df_model['Cluster'].values == cluster_id
-        dists          = cdist(new_sc, X_sc[cluster_mask], metric='euclidean')[0]
-        nearest_player = df_model[cluster_mask].iloc[dists.argmin()]['player_name']
+        cluster_mask = df_model['Cluster'].values == cluster_id
+        dists        = cdist(new_sc, X_sc[cluster_mask], metric='euclidean')[0]
+        sorted_idx   = dists.argsort()
+        best_idx     = sorted_idx[1] if dists[sorted_idx[0]] < 0.001 else sorted_idx[0]
+        nearest_player = df_model[cluster_mask].iloc[best_idx]['player_name']
 
     elif classify and not player_name.strip():
         st.warning("Enter a player name before classifying.")
