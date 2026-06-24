@@ -36,6 +36,11 @@ archetype_map = {
 }
 
 chosen_features = ['BB%', 'Barrel Rate', 'In Zone Swing %', 'Out of Zone Swing %', 'Whiff %']
+
+def _ordinal(n):
+    n = int(round(n))
+    suffix = 'th' if 11 <= n % 100 <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')
+    return f"{n}{suffix}"
 all_features = [
     'K%', 'BB%', 'ISO (SLG-AVG)', 'xwoba', 'Avg EV', 'Barrel Rate',
     'Hard Hit %', 'In Zone Swing %', 'Out of Zone Swing %',
@@ -284,6 +289,24 @@ with right:
             f'<span style="color:white; font-weight:600;">{p}</span>'
             for p in similar_players
         )
+
+        stat_inputs = {
+            'BB%': bb, 'Barrel Rate': barrel,
+            'In Zone Swing %': iz_swing, 'Out of Zone Swing %': oz_swing,
+            'Whiff %': whiff,
+        }
+        bars_html = ''
+        for feat, val in stat_inputs.items():
+            pct = (df_model[feat] <= val).sum() / len(df_model) * 100
+            bars_html += f'''
+            <div style="display:flex;align-items:center;margin-bottom:5px;gap:8px;">
+              <div style="width:115px;color:#D1D5DB;font-size:12px;white-space:nowrap;">{feat}</div>
+              <div style="flex:1;background:#374151;border-radius:3px;height:7px;overflow:hidden;">
+                <div style="width:{pct:.0f}%;background:{color};height:100%;border-radius:3px;"></div>
+              </div>
+              <div style="width:105px;color:#9CA3AF;font-size:11px;text-align:right;">{val:.1f} · {_ordinal(pct)} pctile</div>
+            </div>'''
+
         st.markdown(f"""
         <div style="background:#1F2937; border-left:4px solid {color};
                     padding:16px 20px; border-radius:6px; margin-top:8px;">
@@ -292,6 +315,13 @@ with right:
             <div style="color:#D1D5DB; font-size:13px; margin-top:4px;">{desc}</div>
             <div style="color:#9CA3AF; font-size:12px; margin-top:10px;">
                 Most similar players: {similar_html}
+            </div>
+            <div style="margin-top:14px; border-top:1px solid #374151; padding-top:12px;">
+              <div style="color:#9CA3AF; font-size:11px; margin-bottom:8px;
+                          text-transform:uppercase; letter-spacing:0.05em;">
+                Stat Percentiles vs. {len(df_model)} qualified players
+              </div>
+              {bars_html}
             </div>
         </div>
         """, unsafe_allow_html=True)
