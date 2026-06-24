@@ -152,9 +152,9 @@ with left:
 with right:
     st.subheader("Archetype Map — PCA Projection")
 
-    new_player_pca = None
-    new_archetype  = None
-    nearest_player = None
+    new_player_pca  = None
+    new_archetype   = None
+    similar_players = []
 
     if classify and player_name.strip():
         new_player = pd.DataFrame([{
@@ -170,8 +170,11 @@ with right:
         cluster_mask = df_model['Cluster'].values == cluster_id
         dists        = cdist(new_sc, X_sc[cluster_mask], metric='euclidean')[0]
         sorted_idx   = dists.argsort()
-        best_idx     = sorted_idx[1] if dists[sorted_idx[0]] < 0.001 else sorted_idx[0]
-        nearest_player = df_model[cluster_mask].iloc[best_idx]['player_name']
+        start        = 1 if dists[sorted_idx[0]] < 0.001 else 0
+        similar_players = [
+            df_model[cluster_mask].iloc[sorted_idx[i]]['player_name']
+            for i in range(start, start + 3)
+        ]
 
     elif classify and not player_name.strip():
         st.warning("Enter a player name before classifying.")
@@ -277,6 +280,10 @@ with right:
     if new_archetype:
         color = ARCHETYPE_COLORS[new_archetype]
         desc  = ARCHETYPE_DESCRIPTIONS[new_archetype]
+        similar_html = '  •  '.join(
+            f'<span style="color:white; font-weight:600;">{p}</span>'
+            for p in similar_players
+        )
         st.markdown(f"""
         <div style="background:#1F2937; border-left:4px solid {color};
                     padding:16px 20px; border-radius:6px; margin-top:8px;">
@@ -284,7 +291,7 @@ with right:
             <div style="color:{color}; font-size:22px; font-weight:700;">{new_archetype}</div>
             <div style="color:#D1D5DB; font-size:13px; margin-top:4px;">{desc}</div>
             <div style="color:#9CA3AF; font-size:12px; margin-top:10px;">
-                Most similar to: <span style="color:white; font-weight:600;">{nearest_player}</span>
+                Most similar players: {similar_html}
             </div>
         </div>
         """, unsafe_allow_html=True)
