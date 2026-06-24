@@ -94,6 +94,26 @@ def build_model():
 
 pipeline, pca, df_model, X_sc = build_model()
 
+_defaults = {
+    'inp_name': '', 'inp_bb': 8.5, 'inp_barrel': 10.2,
+    'inp_iz': 68.4, 'inp_oz': 28.1, 'inp_whiff': 24.3,
+}
+for _k, _v in _defaults.items():
+    if _k not in st.session_state:
+        st.session_state[_k] = _v
+
+def _on_lookup():
+    sel = st.session_state.get('player_lookup', '')
+    if sel and sel != '— select a player —':
+        row = df_model[df_model['player_name'] == sel].iloc[0]
+        st.session_state['inp_bb']     = float(row['BB%'])
+        st.session_state['inp_barrel'] = float(row['Barrel Rate'])
+        st.session_state['inp_iz']     = float(row['In Zone Swing %'])
+        st.session_state['inp_oz']     = float(row['Out of Zone Swing %'])
+        st.session_state['inp_whiff']  = float(row['Whiff %'])
+        parts = sel.split(', ')
+        st.session_state['inp_name'] = f"{parts[1]} {parts[0]}" if len(parts) == 2 else sel
+
 # ── Header ────────────────────────────────────────────────────────────────────
 st.title("⚾ MLB Batter Archetype Classifier")
 st.caption("K-Means clustering on 2021–2025 Statcast data  •  106 qualified players  •  4 archetypes")
@@ -105,14 +125,18 @@ left, right = st.columns([1, 2.2])
 with left:
     st.subheader("Player Input")
 
-    player_name = st.text_input("Player Name", placeholder="e.g. Shohei Ohtani")
+    lookup_options = ['— select a player —'] + sorted(df_model['player_name'].tolist())
+    st.selectbox("Look up existing player", lookup_options, key='player_lookup', on_change=_on_lookup)
+    st.caption("Selecting a player auto-fills their stats below.")
+
+    player_name = st.text_input("Player Name", placeholder="e.g. Shohei Ohtani", key='inp_name')
 
     st.markdown("**Batting Stats**")
-    bb       = st.number_input("BB%",         min_value=0.0,  max_value=30.0, value=8.5,  step=0.1, help="Walk rate")
-    barrel   = st.number_input("Barrel Rate", min_value=0.0,  max_value=30.0, value=10.2, step=0.1, help="Barrel batted ball rate")
-    iz_swing = st.number_input("IZ Swing %",  min_value=40.0, max_value=90.0, value=68.4, step=0.1, help="In-zone swing rate")
-    oz_swing = st.number_input("OZ Swing %",  min_value=5.0,  max_value=55.0, value=28.1, step=0.1, help="Out-of-zone chase rate")
-    whiff    = st.number_input("Whiff %",     min_value=5.0,  max_value=50.0, value=24.3, step=0.1, help="Miss rate on all swings")
+    bb       = st.number_input("BB%",         min_value=0.0,  max_value=30.0, step=0.1, key='inp_bb',     help="Walk rate")
+    barrel   = st.number_input("Barrel Rate", min_value=0.0,  max_value=30.0, step=0.1, key='inp_barrel', help="Barrel batted ball rate")
+    iz_swing = st.number_input("IZ Swing %",  min_value=40.0, max_value=90.0, step=0.1, key='inp_iz',     help="In-zone swing rate")
+    oz_swing = st.number_input("OZ Swing %",  min_value=5.0,  max_value=55.0, step=0.1, key='inp_oz',     help="Out-of-zone chase rate")
+    whiff    = st.number_input("Whiff %",     min_value=5.0,  max_value=50.0, step=0.1, key='inp_whiff',  help="Miss rate on all swings")
 
     classify = st.button("Classify Player", type="primary", use_container_width=True)
 
