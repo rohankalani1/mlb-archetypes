@@ -321,3 +321,43 @@ with right:
             f'</div></div>',
             unsafe_allow_html=True,
         )
+
+        # Radar chart: player vs archetype average
+        arch_means = df_model[df_model['Archetype'] == new_archetype][chosen_features].mean()
+        user_pcts = [
+            (df_model[f] <= v).sum() / len(df_model) * 100
+            for f, v in zip(chosen_features, [bb, barrel, iz_swing, oz_swing, whiff])
+        ]
+        arch_pcts = [
+            (df_model[f] <= arch_means[f]).sum() / len(df_model) * 100
+            for f in chosen_features
+        ]
+        radar_labels = ['BB%', 'Barrel Rate', 'IZ Swing %', 'OZ Swing %', 'Whiff %']
+
+        fig_radar = go.Figure()
+        fig_radar.add_trace(go.Scatterpolar(
+            r=arch_pcts, theta=radar_labels,
+            fill='toself', name=f'{new_archetype} avg',
+            line=dict(color=color, width=2),
+            fillcolor=color, opacity=0.3,
+        ))
+        fig_radar.add_trace(go.Scatterpolar(
+            r=user_pcts, theta=radar_labels,
+            fill='toself', name=player_name or 'Your player',
+            line=dict(color='white', width=2),
+            fillcolor='rgba(255,255,255,0.08)',
+        ))
+        fig_radar.update_layout(
+            polar=dict(
+                bgcolor='#1F2937',
+                radialaxis=dict(visible=True, range=[0, 100], tickfont=dict(color='#6B7280'), gridcolor='#374151', linecolor='#374151'),
+                angularaxis=dict(tickfont=dict(color='#D1D5DB'), gridcolor='#374151', linecolor='#374151'),
+            ),
+            paper_bgcolor='#111827',
+            font=dict(color='#9CA3AF'),
+            legend=dict(bgcolor='#1F2937', bordercolor='#374151', borderwidth=1, font=dict(color='white', size=10)),
+            title=dict(text='Player vs. Archetype Average (percentiles)', font=dict(color='#9CA3AF', size=12), x=0.5),
+            height=350,
+            margin=dict(l=40, r=40, t=40, b=20),
+        )
+        st.plotly_chart(fig_radar, use_container_width=True)
